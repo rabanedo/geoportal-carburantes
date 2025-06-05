@@ -15,16 +15,16 @@ import { CommonModule } from '@angular/common';
         id="comunidadSelect"
         class="form-select form-select-lg shadow-sm"
         (change)="onComunidadChange($event)"
-        [disabled]="!comunidades?.length || !stations?.length"
+        [disabled]="!comunidades.length || !stations.length"
       >
         <option value="" disabled selected>
-          {{ !comunidades?.length ? 'Cargando comunidades...' : 'Seleccione una comunidad' }}
+          {{ !comunidades.length ? 'Cargando comunidades...' : 'Seleccione una comunidad' }}
         </option>
         <option *ngFor="let c of comunidades" [value]="c">
           {{ c }}
         </option>
       </select>
-      @if (!comunidades?.length) {
+      @if (!comunidades.length) {
         <div class="d-flex align-items-center mt-2">
           <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
             <span class="visually-hidden">Cargando...</span>
