@@ -1,0 +1,19 @@
+@import '~leaflet/dist/leaflet.css';
+
+// Corrige las rutas relativas para que apunten al lugar donde Angular copia los assets:
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane img {
+  background-image: none !important;
+}
+
+.leaflet-container .leaflet-marker-icon {
+  background-image: url("/assets/leaflet/images/marker-icon.png") !important;
+}
+
+.leaflet-container .leaflet-marker-shadow {
+  background-image: url("/assets/leaflet/images/marker-shadow.png") !important;
+}
