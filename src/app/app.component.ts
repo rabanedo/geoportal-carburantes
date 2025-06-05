@@ -376,19 +376,19 @@ export class AppComponent implements OnInit {
     if (this.comunidadSeleccionada) {
       filtered = filtered.filter((station: any) => station.IDCCAA === this.comunidadSeleccionada);
     }
-    console.log('Estaciones filtradas por comunidad:', filtered.length);
+
     if (this.provinciaSeleccionada) {
       filtered = this.fuelService.filterByProvincia(filtered, this.provinciaSeleccionada);
     }
-    console.log('Estaciones filtradas por provincia:', filtered.length);
+ 
     if (this.fuelSeleccionado) {
       filtered = this.fuelService.filterByFuelType(filtered, this.fuelSeleccionado);
     }
-    console.log('Estaciones filtradas por combustible:', filtered.length);
+  
     filtered = filtered.map((st: any) => {
       const lat = parseFloat(st.Latitud.replace(',', '.'));
       const lng = parseFloat(st["Longitud (WGS84)"].replace(',', '.'));
-      return { ...st, distance: this.calculateDistance(lat, lng)};
+      return { ...st, distance: this.calculateDistance(lat, lng), parsedLat: lat, parsedLng: lng };
     });
 
     this.nearestStations = filtered.sort((a: any, b: any) => a.distance - b.distance).slice(0, 10);
