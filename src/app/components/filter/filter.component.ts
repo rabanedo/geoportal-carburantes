@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
         id="comunidadSelect"
         class="form-select form-select-lg shadow-sm"
         (change)="onComunidadChange($event)"
-        [disabled]="!comunidades?.length"
+        [disabled]="!comunidades?.length || !stations?.length"
       >
         <option value="" disabled selected>
           {{ !comunidades?.length ? 'Cargando comunidades...' : 'Seleccione una comunidad' }}
@@ -159,6 +159,7 @@ export class FilterComponent implements OnChanges {
   @Output() comunidadSelected = new EventEmitter<string>();
   @Output() provinciaSelected = new EventEmitter<string>();
 
+  @Input() stations: any[] = []
   @Input() comunidades: string[] = [];
   @Input() provincias: string[] = [];
 

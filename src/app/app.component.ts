@@ -36,6 +36,7 @@ import { MapComponent } from './components/map/map.component';
                 </div>
                 <div class="card-body">
                   <app-filter
+                    [stations]="allStations"
                     [comunidades]="comunidades"
                     [provincias]="provincias"
                     (comunidadSelected)="onComunidadSelected($event)"
