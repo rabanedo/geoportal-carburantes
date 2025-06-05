@@ -59,7 +59,7 @@ import { MapComponent } from './components/map/map.component';
                   </div>
                   @if (nearestStations.length > 0) {
                     <div class="list-group list-group-flush">
-                      @for (station of nearestStations.slice(0, 5); track station.IDEESS) {
+                      @for (station of nearestStations.slice(0, 10); track station.IDEESS) {
                         <div class="list-group-item border-0 px-0">
                           <div class="d-flex w-100 justify-content-between">
                             <h6 class="mb-1 text-primary">{{ station['Rótulo'] }}</h6>
@@ -239,12 +239,21 @@ import { MapComponent } from './components/map/map.component';
 export class AppComponent implements OnInit {
   latitude = 0;
   longitude = 0;
+
+  // Para almacenar todas las estaciones
   allStations: any[] = [];
   nearestStations: any[] = [];
+
+  // Para almacenar las comunidades
   comunidades: string[] = [];
+  comunidadesMap: { [key: string]: string } = {};
+
+  // Para almacenar las provincias
   provincias: string[] = [];
+
   comunidadSeleccionada: string = '';
   provinciaSeleccionada: string = '';
+
   fechaActual: string = '';
   locationLoaded = false;
 
@@ -252,6 +261,9 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.getUserLocation();
+    this.loadComunities();
+
+    
   }
 
   private getUserLocation(): void {
@@ -261,7 +273,7 @@ export class AppComponent implements OnInit {
           this.latitude = position.coords.latitude;
           this.longitude = position.coords.longitude;
           this.locationLoaded = true;
-          this.fetchStations();
+          this.loadStationsAndDate();
         },
         (error) => {
           console.error('Error obteniendo ubicación:', error);
@@ -269,7 +281,7 @@ export class AppComponent implements OnInit {
           this.latitude = 40.4168;
           this.longitude = -3.7038;
           this.locationLoaded = true;
-          this.fetchStations();
+          this.loadStationsAndDate();
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
@@ -279,120 +291,34 @@ export class AppComponent implements OnInit {
       this.latitude = 40.4168;
       this.longitude = -3.7038;
       this.locationLoaded = true;
-      this.fetchStations();
+      this.loadStationsAndDate();
     }
-  }  fetchStations() {
-    console.log('Iniciando obtención de estaciones...');
-    
-    // Obtener estaciones y comunidades oficiales
-    this.fuelService.getStationsWithComunidades().subscribe({
+  }
+
+  private loadStationsAndDate(): void {
+    this.fuelService.getStationsAndDate().subscribe({
       next: (response) => {
-        console.log('Estaciones obtenidas exitosamente');
         this.allStations = response.stations;
-        console.log('Respuesta de la API:', response.rawData); // Para diagnóstico
-        
-        // Obtener comunidades autónomas usando los nombres oficiales
-        const comunidadesUnicas = new Set<string>();
-        response.stations.forEach((station: any) => {
-          if (station.CCAAOficial) {
-            comunidadesUnicas.add(station.CCAAOficial);
-          }
-        });
-        
-        this.comunidades = Array.from(comunidadesUnicas).sort((a, b) => a.localeCompare(b));
-        console.log('Comunidades oficiales encontradas:', this.comunidades);
-        
-        // Buscar fecha en la respuesta
-        this.fechaActual = this.buscarFecha(response);
+        this.fechaActual = response.fecha;
+
         this.showNearestStations();
       },
       error: (err) => {
-        console.error('Error obteniendo estaciones:', err);
-        console.log('Intentando con método de respaldo...');
-        
-        // Fallback: usar el método anterior
-        this.fuelService.getStationsWithDate().subscribe({
-          next: (response) => {
-            console.log('Datos obtenidos con método de respaldo');
-            this.allStations = response.stations;
-            this.comunidades = this.fuelService.getDistinctValues(response.stations, "CCAA");
-            this.fechaActual = this.buscarFecha(response);
-            this.showNearestStations();
-          },
-          error: (fallbackErr) => {
-            console.error('Error en método de respaldo:', fallbackErr);
-            // Usar datos mínimos para evitar bloqueo
-            this.allStations = [];
-            this.comunidades = [];
-            this.fechaActual = new Date().toLocaleDateString('es-ES') + ' (sin datos)';
-          }
-        });
+        console.error('Error obteniendo estaciones y fecha:', err);
       }
     });
   }
-  private buscarFecha(response: any): string {
-    let fechaEncontrada: string | null = null;
-    
-    // 1. Buscar en la respuesta principal
-    if (response.fecha) {
-      fechaEncontrada = response.fecha;
-      console.log('Fecha encontrada en response.fecha:', fechaEncontrada);
-    }
-    
-    // 2. Buscar en campos comunes de la respuesta raíz
-    if (!fechaEncontrada && response.rawData) {
-      const rawData = response.rawData;
-      const camposRespuesta = [
-        'Fecha', 
-        'FechaActualizacion', 
-        'Fecha_Actualizacion',
-        'Timestamp', 
-        'LastUpdate', 
-        'Nota',
-        'NotaInformativa',
-        'UltimaActualizacion'
-      ];
-      
-      for (const campo of camposRespuesta) {
-        if (rawData[campo] && typeof rawData[campo] === 'string' && rawData[campo].trim() !== '') {
-          fechaEncontrada = rawData[campo];
-          console.log(`Fecha encontrada en respuesta.${campo}:`, fechaEncontrada);
-          break;
-        }
+
+  private loadComunities(): void {
+    this.fuelService.getComunidadesAutonomas().subscribe({
+      next: (comunidades) => {
+        this.comunidadesMap = comunidades;
+        this.comunidades = Object.values(this.comunidadesMap);
+      },
+      error: (err) => {
+        console.error('Error obteniendo comunidades autónomas:', err);
       }
-    }
-    
-    // 3. Buscar en la primera estación si está disponible
-    if (!fechaEncontrada && response.stations && response.stations.length > 0) {
-      const estacion = response.stations[0];
-      const camposEstacion = ['Fecha', 'FechaActualizacion', 'Timestamp', 'LastModified'];
-      
-      for (const campo of camposEstacion) {
-        if (estacion[campo] && typeof estacion[campo] === 'string' && estacion[campo].trim() !== '') {
-          fechaEncontrada = estacion[campo];
-          console.log(`Fecha encontrada en estacion.${campo}:`, fechaEncontrada);
-          break;
-        }
-      }
-    }
-    
-    // 4. Si encontramos una fecha, formatearla
-    if (fechaEncontrada) {
-      const fechaFormateada = this.formatearFecha(fechaEncontrada);
-      if (fechaFormateada !== fechaEncontrada) {
-        return fechaFormateada;
-      }
-    }
-    
-    // 5. Como último recurso, usar la fecha actual
-    const fechaActual = new Date();
-    return fechaActual.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }) + ' (consulta realizada)';
+    });
   }
 
   showNearestStations() {
@@ -413,6 +339,7 @@ export class AppComponent implements OnInit {
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
   }
+
   onFuelSelected(value: string) {
     let filtered = [...this.allStations];
 
@@ -433,6 +360,7 @@ export class AppComponent implements OnInit {
 
     this.nearestStations = filtered.sort((a: any, b: any) => a.distance - b.distance).slice(0, 3);
   }
+
   onComunidadSelected(comunidad: string) {
     this.comunidadSeleccionada = comunidad;
     
@@ -459,80 +387,5 @@ export class AppComponent implements OnInit {
               Math.sin(dLng/2) * Math.sin(dLng/2);
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
-  private formatearFecha(fecha: string): string {
-    if (!fecha || fecha.trim() === '') {
-      return fecha;
-    }
-    
-    try {
-      let fechaObj: Date | null = null;
-      const fechaLimpia = fecha.trim();
-      
-      // Formato 1: ISO 8601 (con T)
-      if (fechaLimpia.includes('T')) {
-        fechaObj = new Date(fechaLimpia);
-      }
-      // Formato 2: DD/MM/YYYY o DD/MM/YYYY HH:MM
-      else if (fechaLimpia.includes('/')) {
-        const partes = fechaLimpia.split(' ');
-        const fechaParte = partes[0];
-        const horaParte = partes[1] || '00:00';
-        
-        const fechaNumeros = fechaParte.split('/');
-        if (fechaNumeros.length === 3) {
-          const dia = parseInt(fechaNumeros[0]);
-          const mes = parseInt(fechaNumeros[1]) - 1; // Los meses en JS van de 0-11
-          const año = parseInt(fechaNumeros[2]);
-          
-          if (horaParte) {
-            const horaNumeros = horaParte.split(':');
-            const horas = parseInt(horaNumeros[0]) || 0;
-            const minutos = parseInt(horaNumeros[1]) || 0;
-            fechaObj = new Date(año, mes, dia, horas, minutos);
-          } else {
-            fechaObj = new Date(año, mes, dia);
-          }
-        }
-      }
-      // Formato 3: DD-MM-YYYY
-      else if (fechaLimpia.includes('-')) {
-        const partes = fechaLimpia.split(' ');
-        const fechaParte = partes[0];
-        
-        const fechaNumeros = fechaParte.split('-');
-        if (fechaNumeros.length === 3 && fechaNumeros[0].length <= 2) {
-          const dia = parseInt(fechaNumeros[0]);
-          const mes = parseInt(fechaNumeros[1]) - 1;
-          const año = parseInt(fechaNumeros[2]);
-          fechaObj = new Date(año, mes, dia);
-        } else {
-          // Posiblemente formato YYYY-MM-DD
-          fechaObj = new Date(fechaLimpia);
-        }
-      }
-      // Formato 4: Otros formatos estándar
-      else {
-        fechaObj = new Date(fechaLimpia);
-      }
-
-      // Verificar si la fecha es válida
-      if (!fechaObj || isNaN(fechaObj.getTime())) {
-        console.warn('No se pudo parsear la fecha:', fecha);
-        return fecha; // Devolver la fecha original si no se puede parsear
-      }
-
-      // Formatear en español
-      return fechaObj.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-    } catch (error) {
-      console.error('Error formateando fecha:', error, 'Fecha original:', fecha);
-      return fecha; // Devolver la fecha original en caso de error
-    }
-  }
+  
 }
