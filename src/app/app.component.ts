@@ -63,11 +63,12 @@ import { MapComponent } from './components/map/map.component';
                       @for (station of nearestStations.slice(0, 10); track station.IDEESS) {
                         <div class="list-group-item border-0 px-0">
                           <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1 text-primary">{{ station['Rótulo'] }}</h6>
+                            <a href="#" (click)="onStationClick(station); $event.preventDefault()" class="text-primary text-decoration-underline" style="cursor:pointer;"><h6 class="mb-1 text-primary">{{ station['Rótulo'] }}</h6></a>
                             <small class="text-muted">{{ station.distance | number:'1.1-1' }} km</small>
                           </div>
                           <p class="mb-1 small text-muted">{{ station['Dirección'] }}</p>
                           <small class="text-muted">{{ station.Municipio }}, {{ station.Provincia }}</small>
+                          <br>
                         </div>
                       }
                     </div>
@@ -96,6 +97,7 @@ import { MapComponent } from './components/map/map.component';
                   <app-map 
                     [stations]="nearestStations" 
                     [currentLocation]="{lat: latitude, lng: longitude}"
+                    [selectedStation]="selectedStation"
                     class="flex-grow-1 d-flex">
                   </app-map>
                 } @else {
@@ -253,6 +255,7 @@ export class AppComponent implements OnInit {
   // Para almacenar las provincias
   provincias: string[] = [];
 
+  selectedStation: any = null;
   comunidadSeleccionada: string = '';
   provinciaSeleccionada: string = '';
   fuelSeleccionado: string = '';
@@ -343,6 +346,10 @@ export class AppComponent implements OnInit {
       .slice(0, 10);
   }
 
+  onStationClick(station: any) {
+    this.selectedStation = station;
+  }
+
   onComunidadSelected(comunidad: string) {
     this.comunidadSeleccionada = this.comunidadesMap[comunidad] || comunidad;
 
@@ -356,7 +363,7 @@ export class AppComponent implements OnInit {
     this.provincias = this.fuelService.getDistinctValues(estacionesFiltradas, "Provincia");
     this.provinciaSeleccionada = ''; // Reiniciar selección anterior
     this.fuelSeleccionado = ''; // Reiniciar selección de combustible
-    
+
     this.refreshNearestStations();
   }
 

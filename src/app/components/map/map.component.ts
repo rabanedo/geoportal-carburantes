@@ -23,12 +23,6 @@ import { icon, Marker, LatLng } from 'leaflet';
           </button>
         </div>
       </div>
-      <div class="map-info position-absolute bottom-0 start-0 m-3">
-        <div class="badge bg-dark bg-opacity-75 text-white p-2">
-          <i class="fas fa-map-marker-alt me-1"></i>
-          {{ stations.length }} estaciones encontradas
-        </div>
-      </div>
     </div>
   `, styles: [`
     .map-container {
@@ -135,6 +129,7 @@ import { icon, Marker, LatLng } from 'leaflet';
 export class MapComponent implements OnChanges {
   @Input() stations: any[] = [];
   @Input() currentLocation: { lat: number, lng: number } = { lat: 0, lng: 0 };
+  @Input() selectedStation: any = null;
 
   private map: L.Map | null = null;
   private userMarker: L.Marker | null = null;
@@ -165,6 +160,14 @@ export class MapComponent implements OnChanges {
 
     if (changes['stations'] && this.map) {
       this.updateMarkers();
+    }
+
+    if (changes['selectedStation'] && this.selectedStation && this.map) {
+      const lat = this.selectedStation.parsedLat;
+      const lng = this.selectedStation.parsedLng;
+      if (lat && lng) {
+        this.map.setView([lat, lng], this.defaultZoom, { animate: true });
+      }
     }
   }
 
@@ -198,8 +201,8 @@ export class MapComponent implements OnChanges {
     // Eliminar marcador anterior si existe
     if (this.userMarker) {
       this.userMarker.remove();
-    }    
-    
+    }
+
     // Añadir nuevo marcador
     this.userMarker = L.marker([this.currentLocation.lat, this.currentLocation.lng], {
       icon: this.userLocationIcon,
