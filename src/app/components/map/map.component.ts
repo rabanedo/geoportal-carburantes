@@ -30,7 +30,7 @@ import { icon, Marker, LatLng } from 'leaflet';
         </div>
       </div>
     </div>
-  `,  styles: [`
+  `, styles: [`
     .map-container {
       height: 100%;
       width: 100%;
@@ -171,10 +171,10 @@ export class MapComponent implements OnChanges {
   private initMap(): void {
     if (!this.map) {
       this.map = L.map('map').setView(
-        [this.currentLocation.lat, this.currentLocation.lng], 
+        [this.currentLocation.lat, this.currentLocation.lng],
         this.defaultZoom
       );
-      
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(this.map);      // Configurar icono por defecto para todos los marcadores
@@ -182,7 +182,7 @@ export class MapComponent implements OnChanges {
 
       // Añadir marcador de usuario
       this.addUserMarker();
-      
+
       // Añadir marcadores de estaciones si existen
       if (this.stations.length) {
         this.updateMarkers();
@@ -198,7 +198,9 @@ export class MapComponent implements OnChanges {
     // Eliminar marcador anterior si existe
     if (this.userMarker) {
       this.userMarker.remove();
-    }    // Añadir nuevo marcador
+    }    
+    
+    // Añadir nuevo marcador
     this.userMarker = L.marker([this.currentLocation.lat, this.currentLocation.lng], {
       icon: this.userLocationIcon,
       zIndexOffset: 1000 // Para asegurar que esté encima de otros marcadores
@@ -220,7 +222,7 @@ export class MapComponent implements OnChanges {
         })
           .addTo(this.map!)
           .bindPopup(this.createPopupContent(station));
-        
+
         return marker;
       });
   }
@@ -230,22 +232,24 @@ export class MapComponent implements OnChanges {
       this.map?.removeLayer(marker);
     });
     this.stationMarkers = [];
-  }  private createPopupContent(station: any): string {
+  }
+
+  private createPopupContent(station: any): string {
     // Obtener precios de diferentes combustibles
     const precioGasolina95 = station['Precio Gasolina 95 E5'];
     const precioGasoleoA = station['Precio Gasoleo A'];
-    
+
     // Formatear precios
     const formatPrice = (price: string | number) => {
       if (!price || price === '' || price === ' ') return 'N/A';
       const numPrice = typeof price === 'string' ? parseFloat(price.replace(',', '.')) : price;
       return isNaN(numPrice) ? 'N/A' : `${numPrice.toFixed(3)} €`;
     };
-    
+
     const gasolina95 = formatPrice(precioGasolina95);
     const gasoleoA = formatPrice(precioGasoleoA);
     const distancia = station.distance ? `${station.distance.toFixed(2)} km` : '?';
-    
+
     return `
       <div class="popup-content">
         <div class="popup-header">

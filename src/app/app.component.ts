@@ -5,8 +5,8 @@ import { FilterComponent } from './components/filter/filter.component';
 import { MapComponent } from './components/map/map.component';
 
 @Component({
-  selector: 'app-root',  standalone: true,
-  imports: [CommonModule, FilterComponent, MapComponent],template: `
+  selector: 'app-root', standalone: true,
+  imports: [CommonModule, FilterComponent, MapComponent], template: `
     <div class="min-vh-100 bg-light">
       <!-- Header -->
       <header class="bg-primary text-white shadow-sm">
@@ -56,7 +56,7 @@ import { MapComponent } from './components/map/map.component';
                 <div class="card-body">
                   <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    {{ nearestStations.length }} estaciones encontradas
+                    {{ filteredSize }} estaciones encontradas. Mostrando {{ nearestStations.length }} de las más cercanas.
                   </div>
                   @if (nearestStations.length > 0) {
                     <div class="list-group list-group-flush">
@@ -152,7 +152,7 @@ import { MapComponent } from './components/map/map.component';
         </footer>
       </div>
     </div>
-  `,  styles: [`
+  `, styles: [`
     :host {
       display: block;
     }
@@ -243,6 +243,7 @@ export class AppComponent implements OnInit {
 
   // Para almacenar todas las estaciones
   allStations: any[] = [];
+  filteredSize: number = 0;
   nearestStations: any[] = [];
 
   // Para almacenar las comunidades
@@ -259,13 +260,11 @@ export class AppComponent implements OnInit {
   fechaActual: string = '';
   locationLoaded = false;
 
-  constructor(private fuelService: FuelService) {}
+  constructor(private fuelService: FuelService) { }
 
   ngOnInit() {
     this.getUserLocation();
     this.loadComunities();
-
-    
   }
 
   private getUserLocation(): void {
@@ -325,14 +324,16 @@ export class AppComponent implements OnInit {
 
   showNearestStations() {
     if (!this.allStations.length) return;
-    
+
+    this.filteredSize = this.allStations.length;
+
     this.nearestStations = this.allStations
       .filter(st => st.Latitud && st["Longitud (WGS84)"])
       .map(st => {
         const lat = parseFloat(st.Latitud.replace(',', '.'));
         const lng = parseFloat(st["Longitud (WGS84)"].replace(',', '.'));
-        return { 
-          ...st, 
+        return {
+          ...st,
           distance: this.calculateDistance(lat, lng),
           parsedLat: lat,
           parsedLng: lng
@@ -343,10 +344,10 @@ export class AppComponent implements OnInit {
   }
 
   onComunidadSelected(comunidad: string) {
-   this.comunidadSeleccionada = this.comunidadesMap[comunidad] || comunidad;
+    this.comunidadSeleccionada = this.comunidadesMap[comunidad] || comunidad;
 
-   // Filtrar estaciones por la comunidad oficial seleccionada
-    const estacionesFiltradas = this.allStations.filter((station: any) => 
+    // Filtrar estaciones por la comunidad oficial seleccionada
+    const estacionesFiltradas = this.allStations.filter((station: any) =>
       station.IDCCAA === this.comunidadSeleccionada
     );
 
@@ -355,7 +356,7 @@ export class AppComponent implements OnInit {
     this.provincias = this.fuelService.getDistinctValues(estacionesFiltradas, "Provincia");
     this.provinciaSeleccionada = ''; // Reiniciar selección anterior
     this.fuelSeleccionado = ''; // Reiniciar selección de combustible
-
+    
     this.refreshNearestStations();
   }
 
@@ -373,8 +374,7 @@ export class AppComponent implements OnInit {
   }
 
   refreshNearestStations() {
-   let filtered = [...this.allStations];
-
+    let filtered = [...this.allStations];
     if (this.comunidadSeleccionada) {
       filtered = filtered.filter((station: any) => station.IDCCAA === this.comunidadSeleccionada);
     }
@@ -382,11 +382,13 @@ export class AppComponent implements OnInit {
     if (this.provinciaSeleccionada) {
       filtered = this.fuelService.filterByProvincia(filtered, this.provinciaSeleccionada);
     }
- 
+
     if (this.fuelSeleccionado) {
       filtered = this.fuelService.filterByFuelType(filtered, this.fuelSeleccionado);
     }
-  
+
+    this.filteredSize = filtered.length;
+
     filtered = filtered.map((st: any) => {
       const lat = parseFloat(st.Latitud.replace(',', '.'));
       const lng = parseFloat(st["Longitud (WGS84)"].replace(',', '.'));
@@ -400,10 +402,9 @@ export class AppComponent implements OnInit {
     const R = 6371; // km
     const dLat = (lat - this.latitude) * Math.PI / 180;
     const dLng = (lng - this.longitude) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(this.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
-  
 }

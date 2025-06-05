@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-filter',
   standalone: true,
-  imports: [CommonModule],  template: `
+  imports: [CommonModule], template: `
     <!-- Comunidad Autónoma -->
     <div class="mb-4">
       <label for="comunidadSelect" class="form-label fw-semibold text-dark">
@@ -74,12 +74,6 @@ import { CommonModule } from '@angular/common';
           <span>{{ type.label }}</span>
         </option>
       </select>
-      <div class="mt-3">
-        <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm" role="alert">
-          <i class="fas fa-lightbulb me-2"></i>
-          <strong>Consejo:</strong> Selecciona tu tipo de carburante favorito para ver las 10 estaciones más cercanas con mejor precio.
-        </div>
-      </div>
     </div>
 
     <!-- Panel de información cuando no hay filtros -->
@@ -92,7 +86,7 @@ import { CommonModule } from '@angular/common';
         Selecciona una comunidad autónoma para ver las opciones disponibles
       </p>
     </div>
-  `,  styles: [`
+  `, styles: [`
     .form-select {
       border: 2px solid #e9ecef;
       transition: all 0.3s ease;
