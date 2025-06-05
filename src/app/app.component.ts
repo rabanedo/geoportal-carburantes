@@ -353,6 +353,7 @@ export class AppComponent implements OnInit {
     // Obtener provincias de las estaciones filtradas
     this.provincias = this.fuelService.getDistinctValues(estacionesFiltradas, "Provincia");
     this.provinciaSeleccionada = ''; // Reiniciar selección anterior
+    this.fuelSeleccionado = ''; // Reiniciar selección de combustible
 
     this.refreshNearestStations();
   }

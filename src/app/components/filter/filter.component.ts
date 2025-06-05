@@ -44,8 +44,9 @@ import { CommonModule } from '@angular/common';
         id="provinciaSelect"
         class="form-select form-select-lg shadow-sm"
         (change)="onProvinciaChange($event)"
+        [value]="provinciaSeleccionada"
       >
-        <option value="" disabled selected>Seleccione una provincia</option>
+        <option value="" selected>Seleccione una provincia</option>
         <option *ngFor="let p of provinciasFiltradas" [value]="p">
           {{ p }}
         </option>
@@ -66,8 +67,9 @@ import { CommonModule } from '@angular/common';
         id="fuelSelect"
         class="form-select form-select-lg shadow-sm"
         (change)="onFuelChange($event)"
+        [value]="fuelSeleccionado"
       >
-        <option value="" disabled selected>Seleccione tipo de carburante</option>
+        <option value="" selected>Seleccione tipo de carburante</option>
         <option *ngFor="let type of fuelTypes" [value]="type.value">
           <span>{{ type.label }}</span>
         </option>
@@ -75,7 +77,7 @@ import { CommonModule } from '@angular/common';
       <div class="mt-3">
         <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm" role="alert">
           <i class="fas fa-lightbulb me-2"></i>
-          <strong>Consejo:</strong> Selecciona tu tipo de carburante favorito para ver las 3 estaciones más cercanas con mejor precio.
+          <strong>Consejo:</strong> Selecciona tu tipo de carburante favorito para ver las 10 estaciones más cercanas con mejor precio.
         </div>
       </div>
     </div>
@@ -162,6 +164,7 @@ export class FilterComponent implements OnChanges {
 
   provinciasFiltradas: string[] = [];
   provinciaSeleccionada = '';
+  fuelSeleccionado = '';
 
   fuelTypes = [
     { label: 'Gasolina 95', value: 'Precio Gasolina 95 E5' },
@@ -178,6 +181,9 @@ export class FilterComponent implements OnChanges {
   onComunidadChange(event: Event) {
     const comunidad = (event.target as HTMLSelectElement).value;
     if (comunidad) {
+      this.provinciaSeleccionada = '';
+      this.fuelSeleccionado = '';
+
       this.comunidadSelected.emit(comunidad);
     }
   }
@@ -186,6 +192,8 @@ export class FilterComponent implements OnChanges {
     const provincia = (event.target as HTMLSelectElement).value;
     if (provincia) {
       this.provinciaSeleccionada = provincia;
+      this.fuelSeleccionado = '';
+
       this.provinciaSelected.emit(provincia);
     }
   }
@@ -193,6 +201,8 @@ export class FilterComponent implements OnChanges {
   onFuelChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
     if (value) {
+      this.fuelSeleccionado = value;
+
       this.fuelSelected.emit(value);
     }
   }
