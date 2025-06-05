@@ -35,7 +35,7 @@ export class FuelService {
       const mapa: { [id: string]: string } = {};
       comunidades.forEach(c => {
         if (c.IDCCAA && c.CCAA) {
-          mapa[c.IDCCAA] = c.CCAA;
+          mapa[c.CCAA] = c.IDCCAA;
         }
       });
       return mapa;
@@ -46,10 +46,6 @@ export class FuelService {
     })
   );
 }
-
-  filterByFuelType(stations: any[], fuelType: string) {
-    return stations.filter(est => est[fuelType] !== '' && est[fuelType] !== ' ' && !isNaN(parseFloat(est[fuelType].replace(',', '.'))));
-  }
 
   getDistinctValues(list: any[], key: string): string[] {
     if (!list || !list.length) return [];
@@ -75,5 +71,9 @@ export class FuelService {
 
   filterByProvincia(list: any[], provincia: string): any[] {
     return list.filter(est => est.Provincia === provincia);
+  }
+
+  filterByFuelType(stations: any[], fuelType: string) {
+    return stations.filter(est => est[fuelType] !== '' && est[fuelType] !== ' ' && !isNaN(parseFloat(est[fuelType].replace(',', '.'))));
   }
 }

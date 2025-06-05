@@ -253,6 +253,7 @@ export class AppComponent implements OnInit {
 
   comunidadSeleccionada: string = '';
   provinciaSeleccionada: string = '';
+  fuelSeleccionado: string = '';
 
   fechaActual: string = '';
   locationLoaded = false;
@@ -313,7 +314,7 @@ export class AppComponent implements OnInit {
     this.fuelService.getComunidadesAutonomas().subscribe({
       next: (comunidades) => {
         this.comunidadesMap = comunidades;
-        this.comunidades = Object.values(this.comunidadesMap);
+        this.comunidades = Object.keys(this.comunidadesMap);
       },
       error: (err) => {
         console.error('Error obteniendo comunidades autónomas:', err);
@@ -340,42 +341,57 @@ export class AppComponent implements OnInit {
       .slice(0, 10);
   }
 
-  onFuelSelected(value: string) {
-    let filtered = [...this.allStations];
-
-    if (this.comunidadSeleccionada) {
-      filtered = filtered.filter((station: any) => station.CCAAOficial === this.comunidadSeleccionada);
-    }
-
-    if (this.provinciaSeleccionada) {
-      filtered = this.fuelService.filterByProvincia(filtered, this.provinciaSeleccionada);
-    }
-
-    filtered = this.fuelService.filterByFuelType(filtered, value).map((st: any) => {
-      const lat = parseFloat(st.Latitud.replace(',', '.'));
-      const lng = parseFloat(st["Longitud (WGS84)"].replace(',', '.'));
-      const price = parseFloat(st[value].replace(',', '.'));
-      return { ...st, distance: this.calculateDistance(lat, lng), Precio: price };
-    });
-
-    this.nearestStations = filtered.sort((a: any, b: any) => a.distance - b.distance).slice(0, 3);
-  }
-
   onComunidadSelected(comunidad: string) {
-    this.comunidadSeleccionada = comunidad;
-    
-    // Filtrar estaciones por la comunidad oficial seleccionada
+   this.comunidadSeleccionada = this.comunidadesMap[comunidad] || comunidad;
+
+   // Filtrar estaciones por la comunidad oficial seleccionada
     const estacionesFiltradas = this.allStations.filter((station: any) => 
-      station.CCAAOficial === comunidad
+      station.IDCCAA === this.comunidadSeleccionada
     );
-    
+
+    // Actualizar las estaciones más cercanas
     // Obtener provincias de las estaciones filtradas
     this.provincias = this.fuelService.getDistinctValues(estacionesFiltradas, "Provincia");
     this.provinciaSeleccionada = ''; // Reiniciar selección anterior
+
+    this.refreshNearestStations();
   }
 
   onProvinciaSelected(provincia: string) {
     this.provinciaSeleccionada = provincia;
+    this.fuelSeleccionado = ''; // Reiniciar selección de combustible
+
+    this.refreshNearestStations();
+  }
+
+  onFuelSelected(fuel: string) {
+    this.fuelSeleccionado = fuel;
+
+    this.refreshNearestStations();
+  }
+
+  refreshNearestStations() {
+   let filtered = [...this.allStations];
+
+    if (this.comunidadSeleccionada) {
+      filtered = filtered.filter((station: any) => station.IDCCAA === this.comunidadSeleccionada);
+    }
+    console.log('Estaciones filtradas por comunidad:', filtered.length);
+    if (this.provinciaSeleccionada) {
+      filtered = this.fuelService.filterByProvincia(filtered, this.provinciaSeleccionada);
+    }
+    console.log('Estaciones filtradas por provincia:', filtered.length);
+    if (this.fuelSeleccionado) {
+      filtered = this.fuelService.filterByFuelType(filtered, this.fuelSeleccionado);
+    }
+    console.log('Estaciones filtradas por combustible:', filtered.length);
+    filtered = filtered.map((st: any) => {
+      const lat = parseFloat(st.Latitud.replace(',', '.'));
+      const lng = parseFloat(st["Longitud (WGS84)"].replace(',', '.'));
+      return { ...st, distance: this.calculateDistance(lat, lng)};
+    });
+
+    this.nearestStations = filtered.sort((a: any, b: any) => a.distance - b.distance).slice(0, 10);
   }
 
   calculateDistance(lat: number, lng: number): number {

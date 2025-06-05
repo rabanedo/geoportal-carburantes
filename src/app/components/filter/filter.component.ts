@@ -65,7 +65,7 @@ import { CommonModule } from '@angular/common';
       <select 
         id="fuelSelect"
         class="form-select form-select-lg shadow-sm"
-        (change)="onSelect($event)"
+        (change)="onFuelChange($event)"
       >
         <option value="" disabled selected>Seleccione tipo de carburante</option>
         <option *ngFor="let type of fuelTypes" [value]="type.value">
@@ -175,13 +175,6 @@ export class FilterComponent implements OnChanges {
     }
   }
 
-  onSelect(event: Event) {
-    const value = (event.target as HTMLSelectElement).value;
-    if (value) {
-      this.fuelSelected.emit(value);
-    }
-  }
-
   onComunidadChange(event: Event) {
     const comunidad = (event.target as HTMLSelectElement).value;
     if (comunidad) {
@@ -194,6 +187,13 @@ export class FilterComponent implements OnChanges {
     if (provincia) {
       this.provinciaSeleccionada = provincia;
       this.provinciaSelected.emit(provincia);
+    }
+  }
+
+  onFuelChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    if (value) {
+      this.fuelSelected.emit(value);
     }
   }
 }
