@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Geoportal Carburantes
         run: |
-          ng build --configuration=production --base-href=/geoportal-carburantes/
+          ng build --configuration=production --base-href=/geoportal-carburantes/ --deploy-url=/geoportal-carburantes/
           cp ./dist/geoportal-carburantes/index.html ./dist/geoportal-carburantes/404.html
         
       - name: Verify build output
