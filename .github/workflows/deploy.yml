@@ -52,4 +52,3 @@ jobs:
           publish_dir: ./dist/geoportal-carburantes
           force_orphan: true
           keep_files: false
-          enable_jekyll: false
