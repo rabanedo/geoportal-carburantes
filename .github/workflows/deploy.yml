@@ -1,31 +1,44 @@
-name: Deploy to GitHub Pages
+name: Despliegue de Geoportal Carburantes
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --progress=false
 
-      - name: Build Angular app
-        run: npm run build -- --configuration=production --base-href=/
+      - name: Build Geoportal Carburantes
+        run: npm run build -- --configuration=production --base-href=/geoportal-carburantes/
+        
+      - name: Verify build output
+        run: ls -lh ./dist/geoportal-carburantes
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist/geoportal-carburantes
+          force_orphan: true
+          keep_files: false
