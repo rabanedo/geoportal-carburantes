@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - '**.md'
       - '.github/**'
+      - '**/*.md'
+      - '**/*.txt'
 
 jobs:
   build-and-deploy:
@@ -13,6 +15,8 @@ jobs:
     environment: production
     permissions:
       contents: write
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -27,13 +31,19 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --progress=false
+        run: |
+          npm ci --no-audit --prefer-offline
+          npm install -g @angular/cli
 
       - name: Build Geoportal Carburantes
-        run: npm run build -- --configuration=production --base-href=/geoportal-carburantes/
+        run: |
+          ng build --configuration=production --base-href=/geoportal-carburantes/
+          cp ./dist/geoportal-carburantes/index.html ./dist/geoportal-carburantes/404.html
         
       - name: Verify build output
-        run: ls -lh ./dist/geoportal-carburantes
+        run: |
+          ls -lh ./dist/geoportal-carburantes/
+          du -sh ./dist/geoportal-carburantes/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -42,3 +52,4 @@ jobs:
           publish_dir: ./dist/geoportal-carburantes
           force_orphan: true
           keep_files: false
+          enable_jekyll: false
