@@ -23,6 +23,9 @@
     "strictTemplates": true
   },
   "files": [],
+  "exclude": [
+    "src/polyfills.ts"
+  ],
   "references": [
     {
       "path": "./tsconfig.app.json"
