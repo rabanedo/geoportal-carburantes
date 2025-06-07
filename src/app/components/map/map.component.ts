@@ -9,6 +9,11 @@ import { icon, Marker, LatLng } from 'leaflet';
   imports: [CommonModule],
   template: `
     <div class="map-container position-relative">
+      <div *ngIf="loading" class="spinner-overlay">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Cargando precios...</span>
+        </div>
+      </div>
       <div id="map" class="rounded shadow-sm"></div>
       <div class="map-overlay position-absolute top-0 end-0 m-3">
         <div class="btn-group-vertical shadow-sm" role="group">
@@ -124,12 +129,25 @@ import { icon, Marker, LatLng } from 'leaflet';
         font-size: 0.8rem;
       }
     }
+
+    .spinner-overlay {
+      position: absolute;
+      z-index: 2000;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   `]
 })
 export class MapComponent implements OnChanges {
   @Input() stations: any[] = [];
   @Input() currentLocation: { lat: number, lng: number } = { lat: 0, lng: 0 };
   @Input() selectedStation: any = null;
+  @Input() fuelSeleccionado: string = '';
+
+  loading: boolean = true; // Indicador de carga
 
   private map: L.Map | null = null;
   private userMarker: L.Marker | null = null;
@@ -214,9 +232,9 @@ export class MapComponent implements OnChanges {
 
   private updateMarkers(): void {
     if (!this.map) return;
+    this.loading = true; // Empieza la carga
 
-    // Limpiar marcadores existentes
-    this.clearStationMarkers();    // Añadir nuevos marcadores
+    this.clearStationMarkers();
     this.stationMarkers = this.stations
       .filter(station => station.parsedLat && station.parsedLng)
       .map(station => {
@@ -225,9 +243,10 @@ export class MapComponent implements OnChanges {
         })
           .addTo(this.map!)
           .bindPopup(this.createPopupContent(station));
-
         return marker;
       });
+
+    this.loading = false; // Termina la carga
   }
 
   private clearStationMarkers(): void {
@@ -238,11 +257,11 @@ export class MapComponent implements OnChanges {
   }
 
   private createPopupContent(station: any): string {
-    // Obtener precios de diferentes combustibles
     const precioGasolina95 = station['Precio Gasolina 95 E5'];
     const precioGasoleoA = station['Precio Gasoleo A'];
+    const precioGasolina98 = station['Precio Gasolina 98 E5'];
+    const cp = station['C.P.'] || station['CP'] || 'N/A';
 
-    // Formatear precios
     const formatPrice = (price: string | number) => {
       if (!price || price === '' || price === ' ') return 'N/A';
       const numPrice = typeof price === 'string' ? parseFloat(price.replace(',', '.')) : price;
@@ -251,7 +270,51 @@ export class MapComponent implements OnChanges {
 
     const gasolina95 = formatPrice(precioGasolina95);
     const gasoleoA = formatPrice(precioGasoleoA);
+    const gasolina98 = formatPrice(precioGasolina98);
     const distancia = station.distance ? `${station.distance.toFixed(2)} km` : '?';
+
+    // Define cards
+    const cards: { [key: string]: string } = {
+      'Precio Gasolina 95 E5': gasolina95 !== 'N/A' ? `
+        <div class="price-card p-1 border rounded flex-fill mx-1 mb-2">
+          <div class="d-flex align-items-center mb-1">
+            <i class="fas fa-gas-pump text-success me-1"></i>
+            <small class="fw-semibold text-success">&nbsp;Gasolina 95</small>
+          </div>
+          <div class="fw-bold text-success">${gasolina95}</div>
+        </div>
+      ` : '',
+      'Precio Gasoleo A': gasoleoA !== 'N/A' ? `
+        <div class="price-card p-1 border rounded flex-fill mx-1 mb-2">
+          <div class="d-flex align-items-center mb-1">
+            <i class="fas fa-gas-pump me-1" style="color:#ffc107"></i>
+            <small class="fw-semibold" style="color:#ffc107">&nbsp;Gasóleo A</small>
+          </div>
+          <div class="fw-bold" style="color:#ffc107">${gasoleoA}</div>
+        </div>
+      ` : '',
+      'Precio Gasolina 98 E5': gasolina98 !== 'N/A' ? `
+        <div class="price-card p-1 border rounded flex-fill mx-1 mb-2">
+          <div class="d-flex align-items-center mb-1">
+            <i class="fas fa-oil-can me-1" style="color:#dc3545"></i>
+            <small class="fw-semibold" style="color:#dc3545">&nbsp;Gasolina 98</small>
+          </div>
+          <div class="fw-bold" style="color:#dc3545">${gasolina98}</div>
+        </div>
+      ` : ''
+    };
+
+    // Si hay filtro, solo muestra el seleccionado
+    let fuelCards = '';
+    if (this.fuelSeleccionado && cards[this.fuelSeleccionado]) {
+      fuelCards = cards[this.fuelSeleccionado];
+    } else {
+      fuelCards = Object.values(cards).filter(Boolean).join('');
+    }
+
+    // Ajustar tamaño solo si hay filtro y solo una card visible
+    const numCards = (fuelCards.match(/price-card/g) || []).length;
+    const isSingleFiltered = this.fuelSeleccionado && numCards === 1;
 
     return `
       <div class="popup-content">
@@ -270,31 +333,13 @@ export class MapComponent implements OnChanges {
             <i class="fas fa-city me-2"></i>
             ${station.Municipio || 'Municipio no disponible'}
           </p>
-          
-          <!-- Precios de combustibles -->
-          <div class="fuel-prices mb-3">
-            <div class="row">
-              <div class="col-6">
-                <div class="price-card p-2 border rounded">
-                  <div class="d-flex align-items-center mb-1">
-                    <i class="fas fa-gas-pump text-success me-1"></i>
-                    <small class="fw-semibold text-success">Gasolina 95</small>
-                  </div>
-                  <div class="fw-bold text-success">${gasolina95}</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="price-card p-2 border rounded">
-                  <div class="d-flex align-items-center mb-1">
-                    <i class="fas fa-oil-can text-warning me-1"></i>
-                    <small class="fw-semibold text-warning">Gasóleo A</small>
-                  </div>
-                  <div class="fw-bold text-warning">${gasoleoA}</div>
-                </div>
-              </div>
-            </div>
+          <p class="mb-2 text-muted small">
+            <i class="fas fa-mail-bulk me-2"></i>
+            <span>${cp}</span>
+          </p>
+          <div class="fuel-prices mb-2 d-flex flex-wrap justify-content-between align-items-stretch">
+            ${fuelCards}
           </div>
-          
           <div class="d-flex justify-content-center">
             <div class="distance-info text-center">
               <small class="text-muted">Distancia:</small>
@@ -306,7 +351,8 @@ export class MapComponent implements OnChanges {
       <style>
         .popup-content { 
           font-family: system-ui, -apple-system, sans-serif; 
-          min-width: 280px;
+          min-width: 260px;
+          max-width: 320px;
         }
         .popup-header { 
           border-bottom: 1px solid #e9ecef; 
@@ -314,22 +360,28 @@ export class MapComponent implements OnChanges {
           margin-bottom: 12px; 
         }
         .popup-body { 
-          min-width: 250px; 
+          min-width: 220px; 
+        }
+        .fuel-prices {
+          background: white;
+          border-radius: 8px;
+          padding: 4px 0 0 0;
+          margin-bottom: 8px;
+          width: 100%;
         }
         .price-card {
           background: #f8f9fa;
           border-color: #e9ecef !important;
           text-align: center;
           transition: all 0.2s ease;
+          min-width: 90px;
+          max-width: 100px;
+          flex: 1 1 90px;
+          font-size: 0.95em;
         }
         .price-card:hover {
           background: #e9ecef;
           transform: translateY(-1px);
-        }
-        .fuel-prices {
-          background: white;
-          border-radius: 8px;
-          padding: 8px;
         }
         .distance-info { 
           text-align: center; 
@@ -338,6 +390,12 @@ export class MapComponent implements OnChanges {
           border-radius: 8px;
           border: 1px solid #e9ecef;
         }
+        ${isSingleFiltered ? `
+        .leaflet-popup-content-wrapper, .popup-content {
+          min-width: 180px !important;
+          max-width: 220px !important;
+        }
+        ` : ''}
       </style>
     `;
   }

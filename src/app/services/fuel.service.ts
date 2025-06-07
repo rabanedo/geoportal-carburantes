@@ -15,6 +15,7 @@ export class FuelService {
     let endpoint = this.estacionesEndpoint;
     if (fecha) {
       endpoint = `${this.estacionesHistEndpoint}${fecha}`;
+      // console.log(`Obteniendo estaciones para la fecha: ${fecha}`);
     }
     return this.http.get<any>(endpoint).pipe(
       timeout(15000), // 15 segundos de timeout

@@ -103,6 +103,7 @@ import { MapComponent } from './components/map/map.component';
                     [stations]="nearestStations" 
                     [currentLocation]="{lat: latitude, lng: longitude}"
                     [selectedStation]="selectedStation"
+                    [fuelSeleccionado]="fuelSeleccionado"
                     class="flex-grow-1 d-flex">
                   </app-map>
                 } @else {
@@ -406,7 +407,13 @@ export class AppComponent implements OnInit {
   }
 
   cargarEstaciones() {
-    this.fuelService.getStationsAndDate(this.fechaSeleccionada).subscribe(data => {
+    let fechaParam = this.fechaSeleccionada;
+    if (fechaParam) {
+      // Convierte yyyy-MM-dd a dd-MM-yyyy
+      const [yyyy, mm, dd] = fechaParam.split('-');
+      fechaParam = `${dd}-${mm}-${yyyy}`;
+    }
+    this.fuelService.getStationsAndDate(fechaParam).subscribe(data => {
       this.allStations = data.stations;
       this.fechaActual = data.fecha;
       this.showNearestStations();

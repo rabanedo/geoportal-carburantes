@@ -112,7 +112,6 @@ import { CommonModule } from '@angular/common';
       <label for="fechaSelect" class="form-label fw-semibold text-dark">
         <i class="fas fa-calendar-alt me-2 text-info"></i>
         Fecha de consulta (3 últimos meses)
-        
       </label>
       <input
         id="fechaSelect"
@@ -265,6 +264,7 @@ export class FilterComponent implements OnChanges {
 
   onFechaChange(event: Event) {
     const fecha = (event.target as HTMLInputElement).value;
+    this.fechaSeleccionada = fecha;
     this.fechaSelected.emit(fecha);
   }
 
