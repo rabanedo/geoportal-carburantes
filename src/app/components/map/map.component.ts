@@ -337,11 +337,11 @@ export class MapComponent implements OnChanges {
             <i class="fas fa-mail-bulk me-2"></i>
             <span>${cp}</span>
           </p>
-          <div class="fuel-prices mb-2 d-flex flex-wrap justify-content-between align-items-stretch">
+          <div class="fuel-prices mb-2 d-flex flex-wrap justify-content-between align-items-stretch${isSingleFiltered ? ' single-card' : ''}">
             ${fuelCards}
           </div>
-          <div class="d-flex justify-content-center">
-            <div class="distance-info text-center">
+          <div class="d-flex ${isSingleFiltered ? 'justify-content-start' : 'justify-content-center'}">
+            <div class="distance-info ${isSingleFiltered ? 'text-start' : 'text-center'}">
               <small class="text-muted">Distancia:</small>
               <div class="fw-bold text-info">${distancia}</div>
             </div>
@@ -353,6 +353,7 @@ export class MapComponent implements OnChanges {
           font-family: system-ui, -apple-system, sans-serif; 
           min-width: 260px;
           max-width: 320px;
+          box-sizing: border-box;
         }
         .popup-header { 
           border-bottom: 1px solid #e9ecef; 
@@ -368,6 +369,7 @@ export class MapComponent implements OnChanges {
           padding: 4px 0 0 0;
           margin-bottom: 8px;
           width: 100%;
+          box-sizing: border-box;
         }
         .price-card {
           background: #f8f9fa;
@@ -378,17 +380,39 @@ export class MapComponent implements OnChanges {
           max-width: 100px;
           flex: 1 1 90px;
           font-size: 0.95em;
+          margin-left: 0.25rem;
+          margin-right: 0.25rem;
         }
         .price-card:hover {
           background: #e9ecef;
           transform: translateY(-1px);
         }
         .distance-info { 
-          text-align: center; 
           background: #f8f9fa;
           padding: 8px 16px;
           border-radius: 8px;
           border: 1px solid #e9ecef;
+          width: auto;
+        }
+        /* Ajustes cuando solo hay una card */
+        .fuel-prices.single-card {
+          justify-content: flex-start !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          width: calc(100% - 44px) !important;
+          max-width: calc(100% - 44px) !important;
+        }
+        .fuel-prices.single-card .price-card {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          flex: 1 1 100% !important;
+          width: 100% !important;
+        }
+        .fuel-prices.single-card ~ .d-flex .distance-info {
+          width: calc(100% - 44px) !important;
+          max-width: calc(100% - 44px) !important;
         }
         ${isSingleFiltered ? `
         .leaflet-popup-content-wrapper, .popup-content {
