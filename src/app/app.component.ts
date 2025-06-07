@@ -39,8 +39,11 @@ import { MapComponent } from './components/map/map.component';
                     [stations]="allStations"
                     [comunidades]="comunidades"
                     [provincias]="provincias"
+                    [municipios]="municipios"
+                    [municipioSeleccionado]="municipioSeleccionado"
                     (comunidadSelected)="onComunidadSelected($event)"
                     (provinciaSelected)="onProvinciaSelected($event)"
+                    (municipioSelected)="onMunicipioSelected($event)"
                     (fuelSelected)="onFuelSelected($event)">
                   </app-filter>
                 </div>
@@ -255,9 +258,13 @@ export class AppComponent implements OnInit {
   // Para almacenar las provincias
   provincias: string[] = [];
 
+  // Para almacenar los municipios
+  municipios: string[] = [];
+
   selectedStation: any = null;
   comunidadSeleccionada: string = '';
   provinciaSeleccionada: string = '';
+  municipioSeleccionado: string = '';
   fuelSeleccionado: string = '';
 
   fechaActual: string = '';
@@ -371,6 +378,16 @@ export class AppComponent implements OnInit {
     this.provinciaSeleccionada = provincia;
     this.fuelSeleccionado = ''; // Reiniciar selección de combustible
 
+    // Obtener municipios de la provincia seleccionada
+    const estacionesProvincia = this.fuelService.filterByProvincia(this.allStations, provincia);
+    this.municipios = this.fuelService.getDistinctMunicipios(estacionesProvincia, provincia);
+    this.municipioSeleccionado = ''; // Reiniciar selección de municipio
+
+    this.refreshNearestStations();
+  }
+
+  onMunicipioSelected(municipio: string) {
+    this.municipioSeleccionado = municipio;
     this.refreshNearestStations();
   }
 
@@ -388,6 +405,10 @@ export class AppComponent implements OnInit {
 
     if (this.provinciaSeleccionada) {
       filtered = this.fuelService.filterByProvincia(filtered, this.provinciaSeleccionada);
+    }
+
+    if (this.municipioSeleccionado) {
+      filtered = this.fuelService.filterByMunicipio(filtered, this.municipioSeleccionado);
     }
 
     if (this.fuelSeleccionado) {

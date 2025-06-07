@@ -208,7 +208,7 @@ export class MapComponent implements OnChanges {
       icon: this.userLocationIcon,
       zIndexOffset: 1000 // Para asegurar que esté encima de otros marcadores
     }).addTo(this.map!)
-      .bindPopup('Tu ubicación actual')
+      .bindPopup('<i class="fas fa-car text-danger me-2"></i> Posición actual')
       .openPopup();
   }
 

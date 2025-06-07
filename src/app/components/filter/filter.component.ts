@@ -57,6 +57,29 @@ import { CommonModule } from '@angular/common';
       </small>
     </div>
 
+    <!-- Municipio (solo si hay provincia seleccionada y municipios disponibles) -->
+    <div class="mb-4" *ngIf="municipios && municipios.length > 0">
+      <label for="municipioSelect" class="form-label fw-semibold text-dark">
+        <i class="fas fa-map-pin me-2 text-danger"></i>
+        Municipio
+      </label>
+      <select 
+        id="municipioSelect"
+        class="form-select form-select-lg shadow-sm"
+        (change)="onMunicipioChange($event)"
+        [value]="municipioSeleccionado"
+      >
+        <option value="" selected>Seleccione un municipio</option>
+        <option *ngFor="let m of municipios" [value]="m">
+          {{ m }}
+        </option>
+      </select>
+      <small class="form-text text-muted mt-1">
+        <i class="fas fa-info-circle me-1"></i>
+        {{ municipios.length }} municipios disponibles
+      </small>
+    </div>
+
     <!-- Carburante (solo si hay provincia seleccionada) -->
     <div class="mb-4" *ngIf="provinciaSeleccionada">
       <label for="fuelSelect" class="form-label fw-semibold text-dark">
@@ -152,10 +175,13 @@ export class FilterComponent implements OnChanges {
   @Output() fuelSelected = new EventEmitter<string>();
   @Output() comunidadSelected = new EventEmitter<string>();
   @Output() provinciaSelected = new EventEmitter<string>();
+  @Output() municipioSelected = new EventEmitter<string>();
 
   @Input() stations: any[] = []
   @Input() comunidades: string[] = [];
   @Input() provincias: string[] = [];
+  @Input() municipios: string[] = [];
+  @Input() municipioSeleccionado: string = '';
 
   provinciasFiltradas: string[] = [];
   provinciaSeleccionada = '';
@@ -178,7 +204,7 @@ export class FilterComponent implements OnChanges {
     if (comunidad) {
       this.provinciaSeleccionada = '';
       this.fuelSeleccionado = '';
-
+      this.municipioSeleccionado = '';
       this.comunidadSelected.emit(comunidad);
     }
   }
@@ -188,16 +214,21 @@ export class FilterComponent implements OnChanges {
     if (provincia) {
       this.provinciaSeleccionada = provincia;
       this.fuelSeleccionado = '';
-
+      this.municipioSeleccionado = '';
       this.provinciaSelected.emit(provincia);
     }
+  }
+
+  onMunicipioChange(event: Event) {
+    const municipio = (event.target as HTMLSelectElement).value;
+    this.municipioSeleccionado = municipio;
+    this.municipioSelected.emit(municipio);
   }
 
   onFuelChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
     if (value) {
       this.fuelSeleccionado = value;
-
       this.fuelSelected.emit(value);
     }
   }

@@ -73,6 +73,22 @@ export class FuelService {
     return list.filter(est => est.Provincia === provincia);
   }
 
+  getDistinctMunicipios(list: any[], provincia: string): string[] {
+    if (!list || !provincia) return [];
+    return Array.from(
+      new Set(
+        list
+          .filter(est => est.Provincia === provincia)
+          .map(est => est.Municipio)
+          .filter(mun => mun !== undefined && mun !== null && mun !== '')
+      )
+    ).sort((a, b) => a.localeCompare(b));
+  }
+
+  filterByMunicipio(list: any[], municipio: string): any[] {
+    return list.filter(est => est.Municipio === municipio);
+  }
+
   filterByFuelType(stations: any[], fuelType: string) {
     return stations.filter(est => est[fuelType] !== '' && est[fuelType] !== ' ' && !isNaN(parseFloat(est[fuelType].replace(',', '.'))));
   }
