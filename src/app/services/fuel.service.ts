@@ -6,12 +6,17 @@ import { throwError } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class FuelService {
   private estacionesEndpoint = 'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/';
+  private estacionesHistEndpoint = 'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestresHist/';
   private comunidadesEndpoint = 'https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/Listados/ComunidadesAutonomas/';
 
   constructor(private http: HttpClient) { }
 
-  getStationsAndDate() {
-    return this.http.get<any>(this.estacionesEndpoint).pipe(
+  getStationsAndDate(fecha?: string) {
+    let endpoint = this.estacionesEndpoint;
+    if (fecha) {
+      endpoint = `${this.estacionesHistEndpoint}${fecha}`;
+    }
+    return this.http.get<any>(endpoint).pipe(
       timeout(15000), // 15 segundos de timeout
       map(data => {
         return {

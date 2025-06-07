@@ -41,10 +41,12 @@ import { MapComponent } from './components/map/map.component';
                     [provincias]="provincias"
                     [municipios]="municipios"
                     [municipioSeleccionado]="municipioSeleccionado"
+                    [fechaSeleccionada]="fechaSeleccionada"
                     (comunidadSelected)="onComunidadSelected($event)"
                     (provinciaSelected)="onProvinciaSelected($event)"
                     (municipioSelected)="onMunicipioSelected($event)"
-                    (fuelSelected)="onFuelSelected($event)">
+                    (fuelSelected)="onFuelSelected($event)"
+                    (fechaSelected)="onFechaSelected($event)">
                   </app-filter>
                 </div>
               </div>
@@ -266,6 +268,7 @@ export class AppComponent implements OnInit {
   provinciaSeleccionada: string = '';
   municipioSeleccionado: string = '';
   fuelSeleccionado: string = '';
+  fechaSeleccionada: string = '';
 
   fechaActual: string = '';
   locationLoaded = false;
@@ -395,6 +398,19 @@ export class AppComponent implements OnInit {
     this.fuelSeleccionado = fuel;
 
     this.refreshNearestStations();
+  }
+
+  onFechaSelected(fecha: string) {
+    this.fechaSeleccionada = fecha;
+    this.cargarEstaciones();
+  }
+
+  cargarEstaciones() {
+    this.fuelService.getStationsAndDate(this.fechaSeleccionada).subscribe(data => {
+      this.allStations = data.stations;
+      this.fechaActual = data.fecha;
+      this.showNearestStations();
+    });
   }
 
   refreshNearestStations() {
