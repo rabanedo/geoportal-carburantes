@@ -111,7 +111,7 @@ import { CommonModule } from '@angular/common';
     <div class="mb-4">
       <label for="fechaSelect" class="form-label fw-semibold text-dark">
         <i class="fas fa-calendar-alt me-2 text-info"></i>
-        Fecha de consulta (3 últimos meses)
+        Fecha de consulta (último año)
       </label>
       <input
         id="fechaSelect"
@@ -207,12 +207,12 @@ export class FilterComponent implements OnChanges {
 
   ngOnInit() {
     const hoy = new Date();
-    const haceTresMeses = new Date();
-    haceTresMeses.setMonth(hoy.getMonth() - 3);
+    const haceUnAño = new Date();
+    haceUnAño.setFullYear(hoy.getFullYear() - 1);
 
     // Formato YYYY-MM-DD
     this.maxFecha = hoy.toISOString().split('T')[0];
-    this.minFecha = haceTresMeses.toISOString().split('T')[0];
+    this.minFecha = haceUnAño.toISOString().split('T')[0];
   }
 
   ngOnChanges(changes: SimpleChanges): void {
